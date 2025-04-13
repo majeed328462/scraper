@@ -1,0 +1,61 @@
+/* Additional custom styles */
+
+/* Make sure long URLs don't break layout */
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Custom button hover effect */
+.btn-outline-primary:hover, 
+.btn-outline-secondary:hover, 
+.btn-outline-info:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s;
+}
+
+/* Textarea for URLs */
+.urls-textarea {
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+/* Make accordion items have a subtle hover effect */
+.accordion-button:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Add some space between items in lists */
+.list-group-item {
+    margin-bottom: 2px;
+}
+
+/* Custom styling for the manga header */
+.display-5 {
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+/* Subtle box shadow for cards */
+.card {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Make the table more readable */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table thead th {
+    border-bottom: 2px solid var(--bs-primary);
+    font-weight: 600;
+}

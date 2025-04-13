@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Scraper - Results</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom">
+            <div class="d-flex align-items-center text-body-emphasis">
+                <a href="/" class="d-flex align-items-center text-body-emphasis text-decoration-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 feather-book-open">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    <span class="fs-4">Manga Scraper</span>
+                </a>
+            </div>
+        </header>
+
+        <div class="p-4 mb-4 bg-body-tertiary rounded-3">
+            <div class="container-fluid">
+                <h1 class="display-5 fw-bold">Manga Scraping Results</h1>
+                <p class="fs-4">
+                    <strong>Manga URL:</strong> 
+                    <a href="{{ manga_url }}" target="_blank" class="text-info">{{ manga_url }}</a>
+                </p>
+                
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Chapter selection section -->
+        {% if chapters and not results %}
+        <div class="p-4 mb-4 bg-body-tertiary rounded-3">
+            <h2>Available Chapters ({{ chapters|length }})</h2>
+            <p>Select the chapters you want to extract images from:</p>
+            
+            <form action="/extract_images" method="post">
+                <div class="mb-3">
+                    <div class="d-flex mb-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary me-2" id="select-all">Select All</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all">Deselect All</button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">Select</th>
+                                    <th>Chapter</th>
+                                    <th class="text-center" style="width: 120px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for chapter in chapters %}
+                                <tr>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input chapter-checkbox" name="selected_chapters" value="{{ chapter.number }}" id="chapter-{{ chapter.number }}">
+                                    </td>
+                                    <td>
+                                        <label for="chapter-{{ chapter.number }}" class="form-check-label">
+                                            {{ chapter.title }}
+                                        </label>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-info preview-btn" data-chapter-url="{{ chapter.url }}">Preview</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Extract Selected Chapters</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Extraction results section -->
+        {% if results %}
+        <div class="p-4 mb-4 bg-body-tertiary rounded-3">
+            <h2>Extracted Image URLs</h2>
+            
+            <div class="accordion" id="chaptersAccordion">
+                {% for chapter_num, chapter_data in results.items() %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ chapter_num|replace('.', '_') }}">
+                            {{ chapter_data.title }} ({{ chapter_data.images|length }} images)
+                        </button>
+                    </h2>
+                    <div id="collapse{{ chapter_num|replace('.', '_') }}" class="accordion-collapse collapse" data-bs-parent="#chaptersAccordion">
+                        <div class="accordion-body">
+                            <p>
+                                <a href="{{ chapter_data.url }}" target="_blank" class="btn btn-sm btn-outline-info mb-2">View Chapter Source</a>
+                                <button class="btn btn-sm btn-outline-primary mb-2 copy-all-btn" data-chapter="{{ chapter_num|replace('.', '_') }}">Copy All URLs</button>
+                            </p>
+                            
+                            <!-- First 3 image thumbnails -->
+                            <div class="row mb-3">
+                                {% for img_url in chapter_data.images[:3] %}
+                                <div class="col-md-4 mb-2">
+                                    <div class="card">
+                                        <div class="card-body p-2 text-center">
+                                            <p class="small text-truncate">Image #{{ loop.index }}</p>
+                                            <a href="{{ img_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">View Full Size</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Image URLs -->
+                            <div class="form-group">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label for="urls-{{ chapter_num|replace('.', '_') }}">Image URLs:</label>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-secondary convert-to-html-btn" data-chapter="{{ chapter_num|replace('.', '_') }}">Convert to HTML</button>
+                                        <a href="/html_tester" class="btn btn-sm btn-outline-info">Open in HTML Tester</a>
+                                    </div>
+                                </div>
+                                <textarea class="form-control urls-textarea" id="urls-{{ chapter_num|replace('.', '_') }}" rows="5" readonly>{% for img_url in chapter_data.images %}{{ img_url }}
+{% endfor %}</textarea>
+                                
+                                <div class="mt-3 html-output-container" id="html-output-{{ chapter_num|replace('.', '_') }}" style="display: none;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label for="html-{{ chapter_num|replace('.', '_') }}">HTML Image Tags:</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input remove-logo-switch" type="checkbox" id="remove-logo-{{ chapter_num|replace('.', '_') }}" data-chapter="{{ chapter_num|replace('.', '_') }}">
+                                            <label class="form-check-label" for="remove-logo-{{ chapter_num|replace('.', '_') }}">Remove logo.png URLs</label>
+                                        </div>
+                                    </div>
+                                    <textarea class="form-control html-textarea" id="html-{{ chapter_num|replace('.', '_') }}" rows="5" readonly></textarea>
+                                    <button class="btn btn-sm btn-outline-primary mt-2 copy-html-btn" data-chapter="{{ chapter_num|replace('.', '_') }}">Copy HTML</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <a href="/" class="btn btn-primary">Start New Scrape</a>
+        </div>
+        {% endif %}
+
+        <!-- Preview Modal -->
+        <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="previewModalLabel">Chapter Preview</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center" id="loadingSpinner">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p>Loading chapter images...</p>
+                        </div>
+                        <div id="previewContent" class="d-none">
+                            <p><strong id="imageCount">0</strong> images found in this chapter</p>
+                            <div id="previewImages" class="row"></div>
+                        </div>
+                        <div id="previewError" class="alert alert-danger d-none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="pt-3 mt-4 text-body-secondary border-top">
+            &copy; 2023 Manga Scraper
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
